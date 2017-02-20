@@ -21,6 +21,7 @@ class BlogHandler(webapp2.RequestHandler):
         """
 
         # TODO - filter the query so that only posts by the given user
+##
         return None
 
     def get_user_by_name(self, username):
@@ -29,21 +30,24 @@ class BlogHandler(webapp2.RequestHandler):
         if user:
             return user.get()
 
-    def login_user(self, user):
+    def login_user(self, user):     # user object
         """ Login a user specified by a User object user """
-        user_id = user.key().id()
-        self.set_secure_cookie('user_id', str(user_id))
+        # set a cookie that tells us that a user has properly authenticated and log the user in.
+        user_id = user.key().id()   # pull the unique user id for the user from the db.
+        self.set_secure_cookie('user_id', str(user_id))     # create a secure cookie
 
     def logout_user(self):
         """ Logout a user specified by a User object user """
         self.set_secure_cookie('user_id', '')
 
     def read_secure_cookie(self, name):
+        # gets the cookies out of the request and check if their hashes match or what it should be so we know that we know that our cookie has not been highjacked.
         cookie_val = self.request.cookies.get(name)
         if cookie_val:
             return hashutils.check_secure_val(cookie_val)
 
     def set_secure_cookie(self, name, val):
+        # takes the name of the cookie you want to set and the value of that cookie and sets it in the response headers.
         cookie_val = hashutils.make_secure_val(val)
         self.response.headers.add_header('Set-Cookie', '%s=%s; Path=/' % (name, cookie_val))
 
@@ -54,10 +58,12 @@ class BlogHandler(webapp2.RequestHandler):
             must be signed in to access the path/resource.
         """
         webapp2.RequestHandler.initialize(self, *a, **kw)
+        # get user id from the cookie
         uid = self.read_secure_cookie('user_id')
-        self.user = uid and User.get_by_id(int(uid))
+        # if there is a user id in the cookie, if so attempt to get the user out of the db based on their user id
+        self.user = uid and User.get_by_id(int(uid))    # store that user in self.user if valid.
 
-        if not self.user and self.request.path in auth_paths:
+        if not self.user and self.request.path in auth_paths:   # if not valid user, restict from accessing specific path & redirect to login screen
             self.redirect('/login')
 
 class IndexHandler(BlogHandler):
@@ -69,7 +75,7 @@ class IndexHandler(BlogHandler):
         response = t.render(users = users)
         self.response.write(response)
 
-class BlogIndexHandler(BlogHandler):
+class BlogIndexHandler(BlogHandler):    # main page of applicaiton
 
     # number of blog posts per page to display
     page_size = 5
@@ -165,6 +171,7 @@ class ViewPostHandler(BlogHandler):
 
 class SignupHandler(BlogHandler):
 
+    # validation methods for different fields
     def validate_username(self, username):
         USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
         if USER_RE.match(username):
@@ -193,6 +200,7 @@ class SignupHandler(BlogHandler):
         if EMAIL_RE.match(email):
             return email
 
+    # get method to display the signup template
     def get(self):
         t = jinja_env.get_template("signup.html")
         response = t.render(errors={})
@@ -218,8 +226,9 @@ class SignupHandler(BlogHandler):
         verify = self.validate_verify(submitted_password, submitted_verify)
         email = self.validate_email(submitted_email)
 
-        errors = {}
+        # in blog handler class - attempt to find a user in the database based on their username.
         existing_user = self.get_user_by_name(username)
+        # (username) came from post request that was submitted when the signup form was passed back to the server.
         has_error = False
 
         if existing_user:
@@ -228,8 +237,11 @@ class SignupHandler(BlogHandler):
         elif (username and password and verify and (email is not None) ):
 
             # create new user object and store it in the database
+            # securely store password by hashing it
             pw_hash = hashutils.make_pw_hash(username, password)
+            # create a new User model object to store in the database
             user = User(username=username, pw_hash=pw_hash)
+            # add to database
             user.put()
 
             # login our new user
@@ -259,7 +271,7 @@ class SignupHandler(BlogHandler):
 class LoginHandler(BlogHandler):
 
     # TODO - The login code here is mostly set up for you, but there isn't a template to log in
-
+##
     def render_login_form(self, error=""):
         """ Render the login form with or without an error, based on parameters """
         t = jinja_env.get_template("login.html")
