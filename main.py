@@ -20,9 +20,13 @@ class BlogHandler(webapp2.RequestHandler):
             The user parameter will be a User object.
         """
 
-        # TODO - filter the query so that only posts by the given user
-##
-        return None
+#       # TODO - filter the query so that only posts by the given user
+        query = Post.all().filter("author", self.user).order('-created')
+        return query.fetch(limit=limit, offset=offset)
+        # user_posts= db.GqlQuery("SELECT * from User WHERE username = '%s'" % user)
+        # if user_posts:
+        #     return user_posts.get()
+        # return None
 
     def get_user_by_name(self, username):
         """ Get a user object from the db, based on their username """
@@ -64,7 +68,7 @@ class BlogHandler(webapp2.RequestHandler):
         self.user = uid and User.get_by_id(int(uid))    # store that user in self.user if valid.
 
         if not self.user and self.request.path in auth_paths:   # if not valid user, restict from accessing specific path & redirect to login screen
-            self.redirect('/login')
+            self.redirect('/blog/login')
 
 class IndexHandler(BlogHandler):
 
@@ -271,7 +275,7 @@ class SignupHandler(BlogHandler):
 class LoginHandler(BlogHandler):
 
     # TODO - The login code here is mostly set up for you, but there isn't a template to log in
-##
+
     def render_login_form(self, error=""):
         """ Render the login form with or without an error, based on parameters """
         t = jinja_env.get_template("login.html")
@@ -309,7 +313,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route('/blog/<id:\d+>', ViewPostHandler),
     webapp2.Route('/blog/<username:[a-zA-Z0-9_-]{3,20}>', BlogIndexHandler),
     ('/signup', SignupHandler),
-    ('/login', LoginHandler),
+    ('/blog/login', LoginHandler),
     ('/logout', LogoutHandler)
 ], debug=True)
 
