@@ -68,7 +68,7 @@ class BlogHandler(webapp2.RequestHandler):
         self.user = uid and User.get_by_id(int(uid))    # store that user in self.user if valid.
 
         if not self.user and self.request.path in auth_paths:   # if not valid user, restict from accessing specific path & redirect to login screen
-            self.redirect('/blog/login')
+            self.redirect('/login')
 
 class IndexHandler(BlogHandler):
 
@@ -251,6 +251,7 @@ class SignupHandler(BlogHandler):
             # login our new user
             self.login_user(user)
         else:
+            errors = {}
             has_error = True
 
             if not username:
@@ -279,7 +280,6 @@ class LoginHandler(BlogHandler):
     def render_login_form(self, error=""):
         """ Render the login form with or without an error, based on parameters """
         t = jinja_env.get_template("login.html")
-        # t = jinja_env.get_template("login.html")
         response = t.render(error=error)
         self.response.out.write(response)
 
@@ -314,7 +314,7 @@ app = webapp2.WSGIApplication([
     webapp2.Route('/blog/<id:\d+>', ViewPostHandler),
     webapp2.Route('/blog/<username:[a-zA-Z0-9_-]{3,20}>', BlogIndexHandler),
     ('/signup', SignupHandler),
-    ('/blog/login', LoginHandler),
+    ('/login', LoginHandler),
     ('/logout', LogoutHandler)
 ], debug=True)
 
