@@ -196,7 +196,7 @@ class SignupHandler(BlogHandler):
         if not email:
             return ""
 
-        EMAIL_RE = re.compile(r"^[\S]+@[\S]+.[\S]+$")
+        EMAIL_RE = re.compile(r"^[\S]+@[\S]+\.[\S]+$")
         if EMAIL_RE.match(email):
             return email
 
